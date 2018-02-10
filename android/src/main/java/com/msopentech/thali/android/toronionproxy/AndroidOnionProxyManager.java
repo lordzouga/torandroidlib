@@ -37,9 +37,12 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.util.Log;
+
 import com.msopentech.thali.toronionproxy.OnionProxyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+// import org.torproject.android.binary.TorResourceInstaller;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,6 +56,7 @@ public class AndroidOnionProxyManager extends OnionProxyManager {
 
     private volatile BroadcastReceiver networkStateReceiver;
     private final Context context;
+    // private TorResourceInstaller resourceInstaller;
 
     public AndroidOnionProxyManager(Context context, String workingSubDirectoryName) {
         super(new AndroidOnionProxyContext(context, workingSubDirectoryName));
@@ -68,6 +72,8 @@ public class AndroidOnionProxyManager extends OnionProxyManager {
             context.registerReceiver(networkStateReceiver, filter);
             return true;
         }
+
+        Log.i("Android Proxy Manager", "Tor not started");
         return false;
     }
 
@@ -112,12 +118,16 @@ public class AndroidOnionProxyManager extends OnionProxyManager {
     private class NetworkStateReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context ctx, Intent i) {
+            //Log.i("NetworkReceiver", "On receive called");
             try {
                 if(!isRunning()) return;
             } catch (IOException e) {
                 LOG.info("Did someone call before Tor was ready?", e);
                 return;
             }
+
+            //Log.i("NetworkReceiver", "Tor is Running");
+
             boolean online = !i.getBooleanExtra(EXTRA_NO_CONNECTIVITY, false);
             if(online) {
                 // Some devices fail to set EXTRA_NO_CONNECTIVITY, double check

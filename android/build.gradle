@@ -18,8 +18,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.0-rc1'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
     }
 }
 
@@ -32,15 +32,21 @@ archivesBaseName = 'ThaliOnionProxyAndroid'
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url "https://raw.githubusercontent.com/guardianproject/gpmaven/master" }
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         minSdkVersion 16 // Please see the readme if you need Sdk support below 16
-        targetSdkVersion 21
+        targetSdkVersion 25
+    }
+
+    configurations {
+        all*.exclude group: 'com.android.support', module: 'support-v4'
+        all*.exclude group: 'com.android.support', module: 'support-annotations'
     }
 
     // Needed to work around https://code.google.com/p/android/issues/detail?id=61573#c14
@@ -57,7 +63,8 @@ dependencies {
     compile fileTree(dir: '../universal/libs', include: '*.jar')
     compile project(':universal')
     compile 'org.slf4j:slf4j-api:1.7.7'
-    compile 'com.msopentech.thali:ThaliOnionProxyUniversal:' + version
+    // compile 'com.msopentech.thali:ThaliOnionProxyUniversal:' + version
+    compile 'org.torproject:tor-android-binary:0.3.1.9'
 
     androidTestCompile 'org.slf4j:slf4j-android:1.7.7'
 }
