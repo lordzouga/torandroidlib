@@ -42,12 +42,10 @@ android {
     defaultConfig {
         minSdkVersion 16 // Please see the readme if you need Sdk support below 16
         targetSdkVersion 25
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    configurations {
-        all*.exclude group: 'com.android.support', module: 'support-v4'
-        all*.exclude group: 'com.android.support', module: 'support-annotations'
-    }
+
 
     // Needed to work around https://code.google.com/p/android/issues/detail?id=61573#c14
     packagingOptions {
@@ -67,6 +65,10 @@ dependencies {
     compile 'org.torproject:tor-android-binary:0.3.1.9'
 
     androidTestCompile 'org.slf4j:slf4j-android:1.7.7'
+    androidTestCompile 'com.android.support:support-annotations:25.4.0'
+    androidTestCompile 'com.android.support.test:runner:1.0.1'
+    androidTestCompile 'com.android.support.test:rules:1.0.1'
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
 }
 
 apply plugin: 'com.github.dcendents.android-maven'

@@ -470,6 +470,7 @@ public abstract class OnionProxyManager {
         PrintWriter printWriter = null;
         try {
             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(onionProxyContext.getTorrcFile(), true)));
+            printWriter.println(); // add a newline for cases where there is an existing config in the file
             printWriter.println("CookieAuthFile " + onionProxyContext.getCookieFile().getAbsolutePath());
             // For some reason the GeoIP's location can only be given as a file name, not a path and it has
             // to be in the data directory so we need to set both

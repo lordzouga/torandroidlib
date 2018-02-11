@@ -29,20 +29,18 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.android.toronionproxy;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.util.Log;
 
 import com.msopentech.thali.toronionproxy.OnionProxyManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// import org.torproject.android.binary.TorResourceInstaller;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +54,6 @@ public class AndroidOnionProxyManager extends OnionProxyManager {
 
     private volatile BroadcastReceiver networkStateReceiver;
     private final Context context;
-    // private TorResourceInstaller resourceInstaller;
 
     public AndroidOnionProxyManager(Context context, String workingSubDirectoryName) {
         super(new AndroidOnionProxyContext(context, workingSubDirectoryName));
@@ -66,6 +63,7 @@ public class AndroidOnionProxyManager extends OnionProxyManager {
     @Override
     public boolean installAndStartTorOp() throws IOException, InterruptedException {
         if (super.installAndStartTorOp()) {
+
             // Register to receive network status events
             networkStateReceiver = new NetworkStateReceiver();
             IntentFilter filter = new IntentFilter(CONNECTIVITY_ACTION);
@@ -95,53 +93,53 @@ public class AndroidOnionProxyManager extends OnionProxyManager {
         }
     }
 
-    @SuppressLint("NewApi")
     protected boolean setExecutable(File f) {
-        if(Build.VERSION.SDK_INT >= 9) {
-            return f.setExecutable(true, true);
-        } else {
-            String[] command = { "chmod", "700", f.getAbsolutePath() };
-            try {
-                return Runtime.getRuntime().exec(command).waitFor() == 0;
-            } catch(IOException e) {
-                LOG.warn(e.toString(), e);
-            } catch(InterruptedException e) {
-                LOG.warn("Interrupted while executing chmod");
-                Thread.currentThread().interrupt();
-            } catch(SecurityException e) {
-                LOG.warn(e.toString(), e);
-            }
-            return false;
-        }
+        return f.setExecutable(true, true);
     }
 
     private class NetworkStateReceiver extends BroadcastReceiver {
+
         @Override
-        public void onReceive(Context ctx, Intent i) {
-            //Log.i("NetworkReceiver", "On receive called");
-            try {
-                if(!isRunning()) return;
-            } catch (IOException e) {
-                LOG.info("Did someone call before Tor was ready?", e);
-                return;
-            }
+        public void onReceive(final Context ctx, final Intent i) {
+            Log.i("NetworkReceiver", "On receive called");
 
-            //Log.i("NetworkReceiver", "Tor is Running");
+            Thread checkTorThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (!isRunning()) return;
+                    } catch (IOException e) {
+                        LOG.info("Did someone call before Tor was ready?", e);
+                    }
 
-            boolean online = !i.getBooleanExtra(EXTRA_NO_CONNECTIVITY, false);
-            if(online) {
-                // Some devices fail to set EXTRA_NO_CONNECTIVITY, double check
-                Object o = ctx.getSystemService(CONNECTIVITY_SERVICE);
-                ConnectivityManager cm = (ConnectivityManager) o;
-                NetworkInfo net = cm.getActiveNetworkInfo();
-                if(net == null || !net.isConnected()) online = false;
-            }
-            LOG.info("Online: " + online);
+                    //Log.i("NetworkReceiver", "Tor is Running");
+
+                    boolean online = !i.getBooleanExtra(EXTRA_NO_CONNECTIVITY, false);
+                    if(online) {
+                        // Some devices fail to set EXTRA_NO_CONNECTIVITY, double check
+                        Object o = ctx.getSystemService(CONNECTIVITY_SERVICE);
+                        ConnectivityManager cm = (ConnectivityManager) o;
+                        NetworkInfo net = cm.getActiveNetworkInfo();
+                        if(net == null || !net.isConnected()) online = false;
+                    }
+                    LOG.info("Online: " + online);
+                    try {
+                        enableNetwork(online);
+                    } catch(IOException e) {
+                        LOG.warn(e.toString(), e);
+                    }
+                }
+            });
+
+            checkTorThread.start();
+
             try {
-                enableNetwork(online);
-            } catch(IOException e) {
-                LOG.warn(e.toString(), e);
+                checkTorThread.join();
+            } catch (InterruptedException e) {
+                LOG.info("Network Management Thread stopped");
             }
         }
     }
+
+
 }
