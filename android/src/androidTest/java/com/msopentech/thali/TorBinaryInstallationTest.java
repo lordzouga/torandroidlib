@@ -67,7 +67,7 @@ public class TorBinaryInstallationTest implements TorServiceConstants{
                 socksPortFound = true;
 
                 String[] sockSportWords = line.split(" ");
-                assertTrue(sockSportWords[1].equals("9050"));
+                assertTrue(sockSportWords[1].equals("auto"));
             }
         }
 

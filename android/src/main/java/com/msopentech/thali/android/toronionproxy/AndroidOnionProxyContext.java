@@ -98,7 +98,7 @@ public class AndroidOnionProxyContext extends OnionProxyContext implements TorSe
             if (line.startsWith("SOCKSPort")){
                 /* do it like this to avoid conflict in future versions if the default value gets
                 * set to a specific port */
-                line = line.replace("0", "9050");
+                line = line.replace("0", "auto");
             }
 
             newConfigBuilder.append(line);
